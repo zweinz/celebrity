@@ -5,11 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Celebrity</title>
 
-    <!-- update the version number as needed -->
     <script defer src="/__/firebase/7.14.3/firebase-app.js"></script>
-    <!-- include only the Firebase features as you need -->
     <script defer src="/__/firebase/7.14.3/firebase-database.js"></script>
-    <!-- initialize the SDK after all desired features are loaded -->
     <script defer src="/__/firebase/init.js"></script>
 
     <style media="screen">
@@ -36,14 +33,10 @@
     <script>
       document.addEventListener('DOMContentLoaded', function() {
         // The Firebase SDK is initialized and available here
-
-        try {
-          let app = firebase.app();
-          let features = ['auth', 'database', 'messaging', 'storage'].filter(feature => typeof app[feature] === 'function');
-          
+        try {          
           let database = firebase.database();
 
-
+          // Input
           let input = document.getElementById('input');
           input.addEventListener('keyup', e => {
               if (e.keyCode === 13) {
@@ -55,6 +48,7 @@
               }
           });
 
+          // Num left
           database.ref('phrases').on('value', snapshot => {
             let num = 0;
             snapshot.forEach(child => {
@@ -65,6 +59,7 @@
             document.getElementById("num").textContent = num;
           });
 
+          // Take one out
           let pop = document.getElementById('pop');
           pop.addEventListener('click', e => {
             database.ref('phrases').once('value').then( snapshot => {
@@ -86,7 +81,7 @@
             });
           });
 
-
+          // Put them all back
           let reset = document.getElementById('reset');
           reset.addEventListener('click', e => {
             database.ref('phrases').once('value').then(snapshot => {
@@ -99,6 +94,7 @@
             });
           });
 
+          // Throw them all out and start over
           let trash = document.getElementById('trash');
           trash.addEventListener('click', e => {
             database.ref('phrases').once('value').then(snapshot => {
