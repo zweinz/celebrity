@@ -10,7 +10,17 @@
     <script defer src="/__/firebase/init.js"></script>
 
     <style media="screen">
-      #container {margin: 16px;}
+      #container {margin: 16px; font-size: 1.2em;}
+
+      button {height: 44px;}
+      #input {width: 80%; margin: 16px 0;}
+      #pop {margin: 16px 0;}
+      #revealed p:first-child {
+        color: navy;
+        font-size: 1.5em;
+        font-weight: medium;
+      }
+      .buttons {margin: 16px 0;}
     </style>
   </head>
   <body>
@@ -19,9 +29,13 @@
       <div>
         <span id="num">[Loading]</span> in the hat.
       </div>
+      
       <button id="pop">Take one out</button>
+      <button id="unpop">Put the last one back</button> 
+
       <div id="revealed"></div>
-      <div>
+      <hr/>
+      <div class="buttons">
         <button id="reset">Put all back</button>
       </div>
       <div>
@@ -35,6 +49,8 @@
         // The Firebase SDK is initialized and available here
         try {          
           let database = firebase.database();
+          let revealed = document.getElementById('revealed');
+          let lastOut = null;
 
           // Input
           let input = document.getElementById('input');
@@ -72,10 +88,17 @@
                 }
               });
 
+              if (inHat.length === 0) {
+                alert('None left.');
+                return;
+              }
+
               let random = Math.floor(Math.random() * inHat.length);
               let chosen = inHat[random];
+              lastOut = chosen;
               let content = chosen.val();
-              document.getElementById('revealed').textContent = content['phrase'];
+              // TODO: bad security
+              revealed.innerHTML = `<p> ${content['phrase']} </p>` + revealed.innerHTML;
               content["inHat"] = false;
               database.ref('phrases/' + chosen.key).set(content);
             });
@@ -90,19 +113,35 @@
                 content["inHat"] = true;
                 database.ref('phrases/' + child.key).set(content);
               });
-              document.getElementById('revealed').textContent = "";
+              revealed.innerHTML = "";
             });
+          });
+
+          // Put last one back
+          let unpop = document.getElementById('unpop');
+          unpop.addEventListener('click', e => {
+            if (!lastOut) {
+              alert('You can only put the last one back this way.');
+              return;
+            }
+            let content = lastOut.val();
+            content["inHat"] = true;
+            database.ref('phrases/' + lastOut.key).set(content);
+            revealed.innerHTML = `<p> You have put back ${content['phrase']} </p>` + revealed.innerHTML;
+            lastOut = null;
           });
 
           // Throw them all out and start over
           let trash = document.getElementById('trash');
           trash.addEventListener('click', e => {
-            database.ref('phrases').once('value').then(snapshot => {
-              snapshot.forEach(child => {
-                child.ref.remove();
+            if (confirm("This deletes everything and starts over.")) {
+              database.ref('phrases').once('value').then(snapshot => {
+                snapshot.forEach(child => {
+                  child.ref.remove();
+                });
+                revealed.innerHTML = "";
               });
-              document.getElementById('revealed').textContent = "";
-            });
+            }
           });
         } catch (e) {
           console.error(e);
