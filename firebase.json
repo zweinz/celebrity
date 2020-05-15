@@ -1,6 +1,4 @@
 {
-  "database": {
-  },
   "hosting": {
     "public": "public",
     "ignore": [
