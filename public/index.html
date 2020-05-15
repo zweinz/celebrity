@@ -113,7 +113,7 @@
                 content["inHat"] = true;
                 database.ref('phrases/' + child.key).set(content);
               });
-              revealed.innerHTML = "";
+              resetUI();
             });
           });
 
@@ -139,10 +139,15 @@
                 snapshot.forEach(child => {
                   child.ref.remove();
                 });
-                revealed.innerHTML = "";
+                resetUI();
               });
             }
           });
+
+          function resetUI() {
+            lastOut = null;
+            revealed.innerHTML = "";
+          }
         } catch (e) {
           console.error(e);
           document.getElementById('load').innerHTML = 'Error loading the Firebase SDK, check the console.';
