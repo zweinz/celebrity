@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Celebrity</title>
+
+    <!-- update the version number as needed -->
+    <script defer src="/__/firebase/7.14.3/firebase-app.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script defer src="/__/firebase/7.14.3/firebase-database.js"></script>
+    <!-- initialize the SDK after all desired features are loaded -->
+    <script defer src="/__/firebase/init.js"></script>
+
+    <style media="screen">
+      #container {margin: 16px;}
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <input type="text" placeholder="Enter a word, press enter" id="input"/>
+      <div>
+        <span id="num">[Loading]</span> in the hat.
+      </div>
+      <button id="pop">Take one out</button>
+      <div id="revealed"></div>
+      <div>
+        <button id="reset">Put all back</button>
+      </div>
+      <div>
+        <button id="trash">Throw everything out</button>
+      </div>
+    </body>
+    <p id="load"></p>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // The Firebase SDK is initialized and available here
+
+        try {
+          let app = firebase.app();
+          let features = ['auth', 'database', 'messaging', 'storage'].filter(feature => typeof app[feature] === 'function');
+          
+          let database = firebase.database();
+
+
+          let input = document.getElementById('input');
+          input.addEventListener('keyup', e => {
+              if (e.keyCode === 13) {
+                  database.ref('phrases/' + Date.now()).set({
+                    "phrase": input.value,
+                    "inHat": true,
+                  });
+                  input.value = "";
+              }
+          });
+
+          database.ref('phrases').on('value', snapshot => {
+            let num = 0;
+            snapshot.forEach(child => {
+              if (child.val()["inHat"] === true) {
+                num += 1;
+              }
+            });
+            document.getElementById("num").textContent = num;
+          });
+
+          let pop = document.getElementById('pop');
+          pop.addEventListener('click', e => {
+            database.ref('phrases').once('value').then( snapshot => {
+              // filter to inHat ones.
+              let inHat = [];
+              snapshot.forEach(child => {
+                let content = child.val();
+                if (content["inHat"] === true) {
+                  inHat.push(child);
+                }
+              });
+
+              let random = Math.floor(Math.random() * inHat.length);
+              let chosen = inHat[random];
+              let content = chosen.val();
+              document.getElementById('revealed').textContent = content['phrase'];
+              content["inHat"] = false;
+              database.ref('phrases/' + chosen.key).set(content);
+            });
+          });
+
+
+          let reset = document.getElementById('reset');
+          reset.addEventListener('click', e => {
+            database.ref('phrases').once('value').then(snapshot => {
+              snapshot.forEach(child => {
+                let content = child.val();
+                content["inHat"] = true;
+                database.ref('phrases/' + child.key).set(content);
+              });
+              document.getElementById('revealed').textContent = "";
+            });
+          });
+
+          let trash = document.getElementById('trash');
+          trash.addEventListener('click', e => {
+            database.ref('phrases').once('value').then(snapshot => {
+              snapshot.forEach(child => {
+                child.ref.remove();
+              });
+              document.getElementById('revealed').textContent = "";
+            });
+          });
+        } catch (e) {
+          console.error(e);
+          document.getElementById('load').innerHTML = 'Error loading the Firebase SDK, check the console.';
+        }
+      });
+    </script>
+  </body>
+</html>
