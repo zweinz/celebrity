@@ -27,7 +27,7 @@
     <div id="container">
       <input type="text" placeholder="Enter a word, press enter" id="input"/>
       <div>
-        <span id="num">[Loading]</span> in the hat.
+        <span id="num">[Loading]</span> left in the hat. <span id="total"></span> total.
       </div>
       
       <button id="pop">Take one out</button>
@@ -55,7 +55,7 @@
           // Input
           let input = document.getElementById('input');
           input.addEventListener('keyup', e => {
-              if (e.keyCode === 13) {
+              if (e.keyCode === 13 && input.value != "") {
                   database.ref('phrases/' + Date.now()).set({
                     "phrase": input.value,
                     "inHat": true,
@@ -64,15 +64,18 @@
               }
           });
 
-          // Num left
+          // Num left, total
           database.ref('phrases').on('value', snapshot => {
             let num = 0;
+            let total = 0;
             snapshot.forEach(child => {
               if (child.val()["inHat"] === true) {
                 num += 1;
               }
+              total += 1;
             });
             document.getElementById("num").textContent = num;
+            document.getElementById("total").textContent = total;
           });
 
           // Take one out
