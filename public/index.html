@@ -130,7 +130,7 @@
             let content = lastOut.val();
             content["inHat"] = true;
             database.ref('phrases/' + lastOut.key).set(content);
-            revealed.innerHTML = `<p> You have put back ${content['phrase']} </p>` + revealed.innerHTML;
+            revealed.innerHTML = `<p> You have put back "${content['phrase']}" </p>` + revealed.innerHTML;
             lastOut = null;
           });
 
